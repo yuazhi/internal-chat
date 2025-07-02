@@ -1,7 +1,7 @@
 # 局域网文字/文件P2P传输工具
 
 一个基于WebRTC的局域网内文字和文件P2P传输工具，支持多设备间实时通信和文件传输。
-基于https://github.com/sunzsh/internal-chat添加新功能界面美化
+基于https://github.com/sunzsh/internal-chat 添加新功能界面美化
 ## 功能特性
 
 - 🔄 **实时文字聊天** - 支持多用户实时文字消息传输
