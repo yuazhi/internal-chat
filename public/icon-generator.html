@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA图标生成器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .upload-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .upload-area {
+      border: 3px dashed #4a90e2;
+      border-radius: 15px;
+      padding: 60px 20px;
+      margin: 20px 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f8f9ff;
+    }
+
+    .upload-area:hover {
+      border-color: #357abd;
+      background: #f0f4ff;
+    }
+
+    .upload-area.dragover {
+      border-color: #357abd;
+      background: #e8f2ff;
+      transform: scale(1.02);
+    }
+
+    .upload-icon {
+      font-size: 4em;
+      color: #4a90e2;
+      margin-bottom: 20px;
+    }
+
+    .upload-text {
+      font-size: 1.2em;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .upload-hint {
+      font-size: 0.9em;
+      color: #999;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .preview-section {
+      display: none;
+      margin-bottom: 30px;
+    }
+
+    .preview-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      margin: 20px 0;
+    }
+
+    .preview-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 15px;
+      object-fit: cover;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .preview-info {
+      text-align: left;
+    }
+
+    .preview-info h3 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .preview-info p {
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .generate-btn {
+      background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 50px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .icons-grid {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .icons-grid h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .icons-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .icon-item {
+      text-align: center;
+      padding: 15px;
+      border-radius: 10px;
+      background: #f8f9ff;
+      border: 2px solid #e8f2ff;
+    }
+
+    .icon-item img {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .icon-item p {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .icon-item .size {
+      font-weight: bold;
+      color: #4a90e2;
+    }
+
+    .download-section {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .download-all-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 50px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .download-all-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    }
+
+    .progress {
+      display: none;
+      margin: 20px 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e9ecef;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4a90e2, #357abd);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      text-align: center;
+      margin-top: 10px;
+      color: #666;
+    }
+
+    .error {
+      color: #dc3545;
+      text-align: center;
+      margin: 10px 0;
+      padding: 10px;
+      background: #f8d7da;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .success {
+      color: #28a745;
+      text-align: center;
+      margin: 10px 0;
+      padding: 10px;
+      background: #d4edda;
+      border-radius: 5px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎨 PWA图标生成器</h1>
+      <p>上传您的照片，一键生成PWA所需的所有尺寸图标</p>
+    </div>
+
+    <div class="content">
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">点击或拖拽上传照片</div>
+          <div class="upload-hint">支持 JPG、PNG、SVG 格式，建议尺寸 512x512 或更大</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+
+      <div class="preview-section" id="previewSection">
+        <div class="preview-container">
+          <img id="previewImage" class="preview-image" alt="预览">
+          <div class="preview-info">
+            <h3>图片预览</h3>
+            <p id="imageInfo">尺寸: -- x --</p>
+            <p id="fileInfo">文件大小: -- KB</p>
+          </div>
+        </div>
+        <button class="generate-btn" id="generateBtn">🚀 生成PWA图标</button>
+      </div>
+
+      <div class="progress" id="progress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">准备中...</div>
+      </div>
+
+      <div class="error" id="error"></div>
+      <div class="success" id="success"></div>
+
+      <div class="icons-grid" id="iconsGrid">
+        <h3>生成的图标</h3>
+        <div class="icons-container" id="iconsContainer"></div>
+        <div class="download-section">
+          <button class="download-all-btn" id="downloadAllBtn">📦 下载所有图标</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script>
+    class IconGenerator {
+      constructor() {
+        this.uploadArea = document.getElementById('uploadArea');
+        this.fileInput = document.getElementById('fileInput');
+        this.previewSection = document.getElementById('previewSection');
+        this.previewImage = document.getElementById('previewImage');
+        this.imageInfo = document.getElementById('imageInfo');
+        this.fileInfo = document.getElementById('fileInfo');
+        this.generateBtn = document.getElementById('generateBtn');
+        this.progress = document.getElementById('progress');
+        this.progressFill = document.getElementById('progressFill');
+        this.progressText = document.getElementById('progressText');
+        this.iconsGrid = document.getElementById('iconsGrid');
+        this.iconsContainer = document.getElementById('iconsContainer');
+        this.downloadAllBtn = document.getElementById('downloadAllBtn');
+        this.error = document.getElementById('error');
+        this.success = document.getElementById('success');
+
+        this.originalImage = null;
+        this.generatedIcons = [];
+
+        this.init();
+      }
+
+      init() {
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        // 点击上传
+        this.uploadArea.addEventListener('click', () => {
+          this.fileInput.click();
+        });
+
+        // 文件选择
+        this.fileInput.addEventListener('change', (e) => {
+          this.handleFileSelect(e.target.files[0]);
+        });
+
+        // 拖拽上传
+        this.uploadArea.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          this.uploadArea.classList.add('dragover');
+        });
+
+        this.uploadArea.addEventListener('dragleave', () => {
+          this.uploadArea.classList.remove('dragover');
+        });
+
+        this.uploadArea.addEventListener('drop', (e) => {
+          e.preventDefault();
+          this.uploadArea.classList.remove('dragover');
+          this.handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        // 生成按钮
+        this.generateBtn.addEventListener('click', () => {
+          this.generateIcons();
+        });
+
+        // 下载所有按钮
+        this.downloadAllBtn.addEventListener('click', () => {
+          this.downloadAllIcons();
+        });
+      }
+
+      handleFileSelect(file) {
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          this.showError('请选择图片文件');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            this.originalImage = img;
+            this.showPreview(file, img);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      showPreview(file, img) {
+        this.previewImage.src = img.src;
+        this.imageInfo.textContent = `尺寸: ${img.width} x ${img.height}`;
+        this.fileInfo.textContent = `文件大小: ${(file.size / 1024).toFixed(1)} KB`;
+        this.previewSection.style.display = 'block';
+        this.hideError();
+        this.hideSuccess();
+      }
+
+      async generateIcons() {
+        if (!this.originalImage) return;
+
+        this.generateBtn.disabled = true;
+        this.progress.style.display = 'block';
+        this.iconsGrid.style.display = 'none';
+        this.hideError();
+        this.hideSuccess();
+
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        this.generatedIcons = [];
+
+        for (let i = 0; i < sizes.length; i++) {
+          const size = sizes[i];
+          this.updateProgress((i / sizes.length) * 100, `生成 ${size}x${size} 图标...`);
+          
+          try {
+            const icon = await this.generateIcon(size);
+            this.generatedIcons.push({ size, dataUrl: icon });
+          } catch (error) {
+            this.showError(`生成 ${size}x${size} 图标失败: ${error.message}`);
+            return;
+          }
+        }
+
+        this.updateProgress(100, '生成完成！');
+        this.showIcons();
+        this.generateBtn.disabled = false;
+        this.progress.style.display = 'none';
+        this.showSuccess('所有图标生成成功！');
+      }
+
+      generateIcon(size) {
+        return new Promise((resolve, reject) => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          canvas.width = size;
+          canvas.height = size;
+
+          // 直接绘制方形图片
+          ctx.drawImage(this.originalImage, 0, 0, size, size);
+
+          try {
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+
+      showIcons() {
+        this.iconsContainer.innerHTML = '';
+        
+        this.generatedIcons.forEach(icon => {
+          const iconItem = document.createElement('div');
+          iconItem.className = 'icon-item';
+          iconItem.innerHTML = `
+            <img src="${icon.dataUrl}" alt="${icon.size}x${icon.size}">
+            <p>${icon.size}x${icon.size}</p>
+            <p class="size">${icon.size}px</p>
+          `;
+          
+          iconItem.addEventListener('click', () => {
+            this.downloadIcon(icon);
+          });
+          
+          this.iconsContainer.appendChild(iconItem);
+        });
+
+        this.iconsGrid.style.display = 'block';
+      }
+
+      downloadIcon(icon) {
+        const link = document.createElement('a');
+        link.download = `icon-${icon.size}x${icon.size}.png`;
+        link.href = icon.dataUrl;
+        link.click();
+      }
+
+      downloadAllIcons() {
+        if (!this.generatedIcons.length) return;
+        const zip = new JSZip();
+        this.generatedIcons.forEach(icon => {
+          // 去掉dataURL头部
+          const base64 = icon.dataUrl.split(',')[1];
+          zip.file(`icon-${icon.size}x${icon.size}.png`, base64, {base64: true});
+        });
+        this.updateProgress(100, '正在打包压缩包...');
+        zip.generateAsync({type: 'blob'}).then(content => {
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(content);
+          link.download = 'pwa-icons.zip';
+          link.click();
+          this.updateProgress(100, '打包完成！');
+        });
+      }
+
+      updateProgress(percent, text) {
+        this.progressFill.style.width = `${percent}%`;
+        this.progressText.textContent = text;
+      }
+
+      showError(message) {
+        this.error.textContent = message;
+        this.error.style.display = 'block';
+      }
+
+      hideError() {
+        this.error.style.display = 'none';
+      }
+
+      showSuccess(message) {
+        this.success.textContent = message;
+        this.success.style.display = 'block';
+      }
+
+      hideSuccess() {
+        this.success.style.display = 'none';
+      }
+    }
+
+    // 初始化应用
+    document.addEventListener('DOMContentLoaded', () => {
+      new IconGenerator();
+    });
+  </script>
+</body>
+</html> 

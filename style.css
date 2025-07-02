@@ -1,0 +1,1059 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body .dragtip {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 999;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+body.dragover .dragtip {
+  display: block;
+}
+body.dragover .dragtip h1 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+}
+pre {
+  margin: 0;
+  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+}
+.left {
+  flex: 1;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: #242424;
+  border-radius: 8px 0 0 8px;
+  margin: 10px 0 10px 10px;
+  position: relative;
+}
+.right {
+  width: 280px;
+  color: #e0e0e0;
+  border-left: 1px solid #363636;
+  padding: 0;
+  background-color: #242424;
+  overflow: visible;
+  margin: 10px 10px 10px 0;
+  border-radius: 0 8px 8px 0;
+}
+.right ul {
+  padding: 15px;
+  margin: 0;
+}
+.right ul li {
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+  line-height: 24px;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+.right ul li:hover {
+  background-color: #363636;
+}
+.chat-wrapper {
+  flex: 1;
+  font-size: 18px;
+  line-height: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 40px;
+  padding-top: 0;
+}
+
+/* 自定义滚动条样式 */
+.chat-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-wrapper::-webkit-scrollbar-track {
+  background: #242424;
+  border-radius: 4px;
+}
+
+.chat-wrapper::-webkit-scrollbar-thumb {
+  background: #363636;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.chat-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #404040;
+}
+
+/* Firefox滚动条样式 */
+.chat-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #363636 #242424;
+}
+
+.chat-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 15px;
+  margin: 5px 0;
+}
+.chat-item.self {
+  align-items: flex-end;
+}
+.chat-item .chat-item_user {
+  display: block;
+  margin-bottom: 4px;
+  color: #64B5F6;
+  font-weight: 500;
+  font-size: 14px;
+  -webkit-user-select: none;
+  user-select: none;
+  padding: 0 8px;
+}
+.chat-item .chat-item_content {
+  display: inline-block;
+  width: fit-content;
+  padding: 10px 14px;
+  background-color: #2a2a2a;
+  border-radius: 16px;
+  position: relative;
+}
+.chat-item.self .chat-item_content {
+  background-color: #1565C0;
+  border-radius: 16px;
+}
+.chat-item .chat-item_content pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #e0e0e0;
+}
+.chat-item.self .chat-item_content pre {
+  color: #ffffff;
+}
+.chat-item .chat-item_content pre a {
+  color: #64B5F6;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.chat-item.self .chat-item_content pre a {
+  color: #E3F2FD;
+}
+.chat-item a.file, .chat-item a.file:visited {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-top: 4px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  color: #e0e0e0;
+  text-decoration: none;
+  max-width: 280px;
+  width: fit-content;
+  min-width: 200px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.chat-item.self a.file {
+  background-color: rgba(25, 118, 210, 0.2);
+  color: #ffffff;
+  border-color: rgba(25, 118, 210, 0.3);
+}
+.chat-item a.file .file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.chat-item a.file .file-icon svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.9;
+}
+.chat-item.self a.file .file-icon {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.chat-item a.file .file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.chat-item a.file .file-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 500;
+  margin-bottom: 1px;
+}
+.chat-item a.file .file-type {
+  font-size: 11px;
+  opacity: 0.7;
+  line-height: 1;
+}
+.chat-item a.file .file-size {
+  font-size: 11px;
+  opacity: 0.5;
+  line-height: 1;
+}
+.txt-msg {
+  outline: none;
+  color: #e0e0e0;
+  height: 15%;
+  min-height: 80px;
+  background-color: #2a2a2a;
+  border: 1px solid #363636;
+  border-radius: 0;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 15px 15px 15px;
+  resize: none;
+  -webkit-border-radius: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-size: 16px !important;
+  transform-origin: top left;
+  transform: scale(1);
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 5px;
+  min-width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 25px;
+}
+
+.modal h3 {
+  margin: 0 0 15px 0;
+  color: #64B5F6;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.user-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.user-select-item {
+  padding: 8px;
+  margin: 5px 0;
+  cursor: pointer;
+  color: #ffffffbb;
+  background-color: #363636;
+  border-radius: 4px;
+  margin: 8px 0;
+  transition: all 0.2s;
+}
+
+.user-select-item:hover {
+  background-color: #404040;
+}
+
+.user-select-item label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.user-select-item input[type="checkbox"] {
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.user-select-item span {
+  flex: 1;
+}
+
+.modal-footer {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.modal-footer button {
+  padding: 8px 20px;
+  background: #64B5F6;
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: 1px solid #42A5F5;
+  cursor: pointer;
+}
+
+.modal-footer button:first-child {
+  background: transparent;
+  color: #64B5F6;
+  border: 1px solid #64B5F6;
+  margin-right: 10px;
+}
+
+.modal-footer button:first-child:hover {
+  background: rgba(100, 181, 246, 0.1);
+}
+
+.modal-footer button:hover {
+  background: #42A5F5;
+  border-color: #1E88E5;
+}
+
+.modal-footer button:disabled {
+  background: #cccccc;
+  border-color: #bbbbbb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.progress-container {
+  margin: 15px 0;
+}
+
+.progress-text {
+  color: #ffffffbb;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #363636;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-inner {
+  width: 0%;
+  height: 100%;
+  background: #64B5F6;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.toolbar {
+  background-color: #2a2a2a;
+  margin: 0 15px;
+  padding: 10px;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid #363636;
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toolbar-left, .toolbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-btn,
+.pwa-install-btn {
+  background: transparent;
+  color: #e0e0e0;
+  border: 1px solid #363636;
+  border-radius: 4px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: none;
+}
+
+.toolbar-btn:last-child,
+.pwa-install-btn:last-child {
+  margin-right: 0;
+}
+
+.toolbar-btn:hover {
+  background: #363636;
+  color: #64B5F6;
+}
+
+.toolbar-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block;
+  margin: 0 auto;
+}
+
+/* 发送按钮特殊样式 */
+.send-btn {
+  color: #666;
+}
+
+.send-btn:hover {
+  background-color: #ddd;
+}
+
+/* 拖拽提示样式 */
+.dragtip {
+  background: rgba(26, 26, 26, 0.95);
+}
+
+.dragtip h1 {
+  color: #64B5F6;
+  font-size: 28px;
+  text-align: center;
+}
+
+.connection-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+.connection-status svg {
+  width: 16px;
+  height: 16px;
+}
+
+.connection-status.connected {
+  color: #4CAF50;
+}
+
+.connection-status.disconnected {
+  color: #F44336;
+}
+
+.mobile-menu-btn {
+  display: none;
+  position: absolute;
+  top: 7px;
+  right: 15px;
+  z-index: 100;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #e0e0e0;
+  transition: color 0.2s;
+}
+
+.mobile-menu-btn:hover {
+  color: #64B5F6;
+}
+
+.mobile-sidebar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100%;
+  background: #242424;
+  z-index: 999;
+  transition: left 0.3s ease;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-sidebar.active {
+  left: 0;
+}
+
+.mobile-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border-bottom: 1px solid #363636;
+  position: relative;
+}
+
+.mobile-sidebar-header:after {
+  content: '';
+  position: absolute;
+  right: -281px;
+  top: 49px;
+  width: 280px;
+  height: 1px;
+  background-color: #363636;
+}
+
+.mobile-sidebar-header h3 {
+  margin: 0;
+  color: #64B5F6;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-sidebar-header h3 .user-count {
+  font-size: 14px;
+  color: #999;
+  font-weight: normal;
+}
+
+.mobile-sidebar-header .close-sidebar {
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.mobile-sidebar-header .close-sidebar:hover {
+  color: #64B5F6;
+}
+
+.mobile-users {
+  padding: 15px;
+  list-style: none;
+  margin: 0;
+}
+
+.mobile-users li {
+  padding: 12px;
+  margin: 8px 0;
+  background: #2a2a2a;
+  border-radius: 4px;
+  color: #e0e0e0;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .mobile-sidebar {
+    display: block;
+  }
+  
+  .right {
+    display: none;
+  }
+  
+  .left {
+    margin: 10px;
+    border-radius: 8px;
+  }
+  
+  .chat-wrapper {
+    padding-top: 0;
+  }
+  
+  .mobile-sidebar-header:after {
+    display: none;
+  }
+  
+  .chat-header {
+    padding-left: 50px;
+  }
+  
+  .txt-msg {
+    font-size: 16px !important;
+    height: 10%;
+    min-height: 110px;
+  }
+}
+
+.users-header {
+  padding: 15px;
+  border-bottom: 1px solid #363636;
+  position: relative;
+}
+
+.users-header:after {
+  content: '';
+  position: absolute;
+  right: -201px;
+  top: 49px;
+  width: 200px;
+  height: 1px;
+  background-color: #363636;
+}
+
+.users-header h3 {
+  margin: 0;
+  color: #64B5F6;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.users-header h3 .user-count {
+  font-size: 14px;
+  color: #999;
+  font-weight: normal;
+}
+
+.chat-header {
+  padding: 15px;
+  border-bottom: 1px solid #363636;
+}
+
+.chat-header h3 {
+  margin: 0;
+  color: #64B5F6;
+  font-size: 16px;
+}
+
+/* 使用须知模态框样式 */
+.usage-info-modal {
+  max-width: 500px;
+  width: calc(100% - 40px);
+}
+
+.usage-info-content {
+  background-color: #333;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.usage-info-content p {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #64B5F6;
+  font-size: 15px;
+}
+
+.usage-info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.usage-info-item:last-child {
+  margin-bottom: 0;
+}
+
+.usage-info-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-right: 10px;
+  margin-top: 2px;
+  color: #FFA726;
+}
+
+.usage-info-item span {
+  line-height: 1.4;
+}
+
+.usage-info-item strong {
+  color: #FF9800;
+}
+
+.usage-info-modal .modal-footer {
+  text-align: center;
+}
+
+.usage-info-modal .modal-footer button {
+  padding: 10px 30px;
+  font-size: 15px;
+}
+
+/* 网络状态指示器样式 */
+.network-status-container {
+  margin-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 15px;
+}
+
+.network-status-container h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #e0e0e0;
+}
+
+.network-status {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 6px;
+  background-color: #333;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.status-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #e0e0e0;
+}
+
+.status-message strong {
+  color: #64B5F6;
+}
+
+.status-icon.pending {
+  color: #aaa;
+  animation: pulse 1.5s infinite;
+}
+
+.status-icon.success {
+  color: #4caf50;
+}
+
+.status-icon.warning {
+  color: #ff9800;
+}
+
+.status-icon.error {
+  color: #f44336;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* 工具栏网络状态指示器 */
+.toolbar-network-status {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #363636;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toolbar-network-status:hover {
+  background-color: #404040;
+}
+
+.toolbar-network-status .status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+}
+
+.toolbar-network-status .status-message {
+  font-size: 12px;
+  white-space: nowrap;
+  color: #e0e0e0;
+}
+
+.toolbar-network-status .status-icon.pending {
+  color: #aaa;
+  animation: pulse 1.5s infinite;
+}
+
+.toolbar-network-status .status-icon.success {
+  color: #4caf50;
+}
+
+.toolbar-network-status .status-icon.warning {
+  color: #ff9800;
+}
+
+.toolbar-network-status .status-icon.error {
+  color: #f44336;
+}
+
+/* 昵称输入相关样式 */
+.nickname-input-container {
+  margin: 20px auto 24px auto;
+  display: flex;
+  justify-content: center;
+}
+
+.nickname-input-container input {
+  width: 100%;
+  max-width: 340px;
+  padding: 12px 14px;
+  border: 1px solid #363636;
+  background: #242424;
+  color: #e0e0e0;
+  border-radius: 4px;
+  font-size: 17px;
+  box-sizing: border-box;
+  display: block;
+}
+
+.nickname-input-container input:focus {
+  outline: none;
+  border-color: #64B5F6;
+}
+
+/* 添加私聊模式下输入框的样式 */
+.txt-msg.private-mode {
+  border-color: #64B5F6;
+  background-color: rgba(100, 181, 246, 0.05);
+}
+
+/* 私聊消息样式 */
+.chat-item.private-chat {
+  background-color: rgba(100, 181, 246, 0.05);
+  border-left: 3px solid #64B5F6;
+}
+
+/* 用户操作菜单 */
+.user-action-menu {
+  position: fixed;
+  background: #2a2a2a;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  width: 180px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.user-action-header {
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64B5F6;
+  background: #242424;
+  border-bottom: 1px solid #363636;
+}
+
+.user-action-item {
+  padding: 8px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #e0e0e0;
+}
+
+.user-action-item:hover {
+  background-color: #363636;
+}
+
+.user-action-item svg {
+  flex-shrink: 0;
+}
+
+/* PWA 安装按钮样式 */
+.pwa-install-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: #e0e0e0;
+  border: 1px solid #363636;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: none;
+  margin-left: 10px;
+  width: 36px;
+  height: 36px;
+}
+
+.pwa-install-btn:hover {
+  transform: none;
+  box-shadow: none;
+  background: #363636;
+  color: #64B5F6;
+}
+
+.pwa-install-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block;
+  margin: 0 auto;
+}
+
+.pwa-install-btn,
+.toolbar-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  max-width: 36px;
+  max-height: 36px;
+  padding: 0;
+  box-sizing: border-box;
+  margin-right: 8px;
+  margin-left: 0;
+}
+
+.toolbar-btn:last-child,
+.pwa-install-btn:last-child {
+  margin-right: 0;
+}
+
+/* PWA 通知样式 */
+.pwa-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  z-index: 10000;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.3s ease;
+  max-width: 350px;
+}
+
+.pwa-notification.success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.pwa-notification.update {
+  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.pwa-notification.offline {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.pwa-notification svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.pwa-notification button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: auto;
+  transition: background 0.2s;
+}
+
+.pwa-notification button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .pwa-install-btn,
+  .toolbar-btn {
+    padding: 0;
+    font-size: 12px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    max-width: 32px;
+    max-height: 32px;
+    margin-right: 8px !important;
+    margin-left: 0 !important;
+  }
+  .pwa-install-btn:last-child,
+  .toolbar-btn:last-child {
+    margin-right: 0 !important;
+  }
+  .pwa-install-btn span {
+    display: none;
+  }
+  .pwa-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}

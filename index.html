@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>局域网文字/文件P2P传输工具</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#242424">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="P2P传输">
+  <meta name="msapplication-TileColor" content="#242424/">
+  <meta name="msapplication-config" content="/browserconfig.xml">
+  
+  <!-- PWA Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/icons/icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/icons/icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="/icons/icon-57x57.png">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <link rel="stylesheet" href="./style.css?v=16">
+</head>
+<body>
+  <div class="dragtip">
+    <h1>松开发送文件</h1>
+  </div>
+  <div class="left">
+    <div class="mobile-menu-btn" title="打开用户列表">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+    </div>
+    <div class="chat-header">
+      <h3>聊天区域</h3>
+    </div>
+    
+    <div class="chat-wrapper">
+    </div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <!-- 添加网络状态指示器 -->
+        <div id="chatNetworkStatusIndicator" class="toolbar-network-status" onclick="checkNetworkStatus()" title="点击刷新网络状态">
+          <div class="status-icon pending">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+            </svg>
+          </div>
+          <div class="status-message">正在检测...</div>
+        </div>
+        
+        <button class="toolbar-btn file-btn" title="发送文件">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
+          </svg>
+        </button>
+        
+        <!-- 添加昵称设置按钮 -->
+        <button class="toolbar-btn nickname-btn" title="设置昵称">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <button class="toolbar-btn send-btn" title="发送消息">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <textarea id="messageInput" class="txt-msg" onkeydown="enterTxt(event)" placeholder="输入消息..." title="消息输入框"></textarea>
+  </div>
+  <div class="right">
+    <div class="users-header">
+      <h3>在线用户 <span class="user-count"></span></h3>
+    </div>
+    <ul id="users">
+    </ul>
+  </div>
+  <div class="mobile-sidebar">
+    <div class="mobile-sidebar-header">
+      <h3>在线用户 <span class="user-count"></span></h3>
+      <button class="close-sidebar" title="关闭用户列表">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <ul class="mobile-users"></ul>
+  </div>
+
+  <div class="modal" id="userSelectModal">
+    <div class="modal-content">
+      <h3>选择接收用户</h3>
+      <div class="user-list" id="userSelectList">
+      </div>
+      <div class="progress-container" style="display: none;">
+        <div class="progress-text">正在发送...</div>
+        <div class="progress-bar">
+          <div class="progress-bar-inner"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="cancelSendFile()">取消</button>
+        <button onclick="confirmSendFile()">发送</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用须知模态框 -->
+  <div class="modal" id="usageInfoModal">
+    <div class="modal-content usage-info-modal">
+      <h3>使用须知</h3>
+      <div class="usage-info-content">
+        <p><strong>重要提示：</strong>仅支持同一局域网内设备间传输</p>
+        
+        <div class="usage-info-item">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span>所有设备必须连接<strong>同一个局域网</strong></span>
+        </div>
+        
+        <div class="usage-info-item">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span>不同连接方式（如一个用4G，一个用Wi-Fi）<strong>无法传输</strong></span>
+        </div>
+        
+        <div class="usage-info-item">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span>多设备建议设置<strong>自定义名称</strong></span>
+        </div>
+        
+        <!-- 添加当前网络状态 -->
+        <div class="network-status-container">
+          <h4>当前网络状态</h4>
+          <div id="networkStatusIndicator" class="network-status">
+            <div class="status-icon pending">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+              </svg>
+            </div>
+            <div class="status-message">正在检测网络连接状态...</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeUsageInfoModal()">我已了解</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 昵称设置模态框 -->
+  <div class="modal" id="nicknameModal">
+    <div class="modal-content">
+      <h3>设置昵称</h3>
+      <div class="nickname-input-container">
+        <input type="text" id="nicknameInput" placeholder="请输入您的昵称（最多20个字符）" maxlength="20">
+      </div>
+      <div class="modal-footer">
+        <button id="cancelNickname">取消</button>
+        <button id="confirmNickname">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 先加载XChatUser类 -->
+  <script src="./xchatuser.js?v=16"></script>
+  <!-- 再加载主程序 -->
+  <script src="./index.js?v=16"></script>
+  <!-- PWA脚本 -->
+  <script src="/pwa.js?v=16"></script>
+</body>
+</html>

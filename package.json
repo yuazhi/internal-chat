@@ -1,0 +1,12 @@
+{
+  "name": "internal-chat",
+  "version": "1.0.0",
+  "description": "Internal Chat Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+} 
