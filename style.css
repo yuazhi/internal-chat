@@ -34,7 +34,7 @@ body.dragover .dragtip h1 {
 }
 pre {
   margin: 0;
-  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","å¾®è½¯é›…é»‘",Arial,sans-serif;
 }
 .left {
   flex: 1;
@@ -88,7 +88,7 @@ pre {
   padding-top: 0;
 }
 
-/* 自定义滚动条样式 */
+/* è‡ªå®šä¹‰æ»šåŠ¨æ¡æ ·å¼ */
 .chat-wrapper::-webkit-scrollbar {
   width: 8px;
 }
@@ -108,7 +108,7 @@ pre {
   background: #404040;
 }
 
-/* Firefox滚动条样式 */
+/* Firefoxæ»šåŠ¨æ¡æ ·å¼ */
 .chat-wrapper {
   scrollbar-width: thin;
   scrollbar-color: #363636 #242424;
@@ -272,40 +272,74 @@ pre {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #2a2a2a;
-  padding: 20px;
-  border-radius: 5px;
-  min-width: 300px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 25px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  min-width: 400px;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 
 .modal h3 {
-  margin: 0 0 15px 0;
-  color: #64B5F6;
-  font-size: 18px;
-  margin-bottom: 20px;
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid #333;
+  background: #1e1e1e;
+  flex-shrink: 0;
 }
 
 .user-list {
-  max-height: 300px;
+  flex: 1;
   overflow-y: auto;
+  min-height: 0;
+  padding: 24px;
+  background: #1e1e1e;
+}
+
+/* ç”¨æˆ·åˆ—è¡¨æ»šåŠ¨æ¡æ ·å¼ */
+.user-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-list::-webkit-scrollbar-track {
+  background: #242424;
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+  background: #363636;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.user-list::-webkit-scrollbar-thumb:hover {
+  background: #404040;
+}
+
+/* Firefoxæ»šåŠ¨æ¡æ ·å¼ */
+.user-list {
+  scrollbar-width: thin;
+  scrollbar-color: #363636 #242424;
 }
 
 .user-select-item {
-  padding: 8px;
-  margin: 5px 0;
+  padding: 12px 16px;
+  margin: 0 0 8px 0;
   cursor: pointer;
-  color: #ffffffbb;
-  background-color: #363636;
-  border-radius: 4px;
-  margin: 8px 0;
-  transition: all 0.2s;
+  color: #fff;
+  background-color: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 0;
+  transition: background-color 0.15s ease;
 }
 
 .user-select-item:hover {
-  background-color: #404040;
+  background-color: #333;
 }
 
 .user-select-item label {
@@ -325,69 +359,190 @@ pre {
   flex: 1;
 }
 
+/* å¤šæ–‡ä»¶å‘é€ç›¸å…³æ ·å¼ */
+.files-list {
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+.files-list h4 {
+  color: #fff;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.files-container {
+  max-height: 200px;
+  overflow-y: auto;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* æ–‡ä»¶å®¹å™¨æ»šåŠ¨æ¡æ ·å¼ */
+.files-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.files-container::-webkit-scrollbar-track {
+  background: #242424;
+  border-radius: 3px;
+}
+
+.files-container::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.files-container::-webkit-scrollbar-thumb:hover {
+  background: #505050;
+}
+
+/* Firefoxæ»šåŠ¨æ¡æ ·å¼ */
+.files-container {
+  scrollbar-width: thin;
+  scrollbar-color: #404040 #242424;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  margin: 0;
+  background: #2a2a2a;
+  border-bottom: 1px solid #333;
+  color: #fff;
+  font-size: 13px;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-item .file-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.file-item .file-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+}
+
+.file-item .file-size {
+  color: #999;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.users-list {
+  margin-top: 24px;
+  flex-shrink: 0;
+}
+
+.users-list h4 {
+  color: #fff;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.no-users-message {
+  background: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 0;
+  padding: 24px;
+  margin: 0;
+  text-align: center;
+}
+
+.no-users-message div {
+  color: #999;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .modal-footer {
-  margin-top: 15px;
+  margin: 0;
   text-align: right;
+  flex-shrink: 0;
+  padding: 16px 24px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
 }
 
 .modal-footer button {
-  padding: 8px 20px;
-  background: #64B5F6;
+  padding: 8px 16px;
+  background: #333;
   color: #fff;
-  border-radius: 4px;
+  border: 1px solid #555;
+  font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
-  border: 1px solid #42A5F5;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-radius: 0;
 }
 
 .modal-footer button:first-child {
   background: transparent;
-  color: #64B5F6;
-  border: 1px solid #64B5F6;
-  margin-right: 10px;
+  color: #fff;
+  border: 1px solid #555;
+  margin-right: 0; /* 移除margin，使用gap控制间距 */
 }
 
 .modal-footer button:first-child:hover {
-  background: rgba(100, 181, 246, 0.1);
+  background: #333;
 }
 
 .modal-footer button:hover {
-  background: #42A5F5;
-  border-color: #1E88E5;
+  background: #444;
 }
 
 .modal-footer button:disabled {
-  background: #cccccc;
-  border-color: #bbbbbb;
+  background: #2a2a2a;
+  border-color: #333;
+  color: #666;
   cursor: not-allowed;
-  opacity: 0.7;
 }
 
 .progress-container {
-  margin: 15px 0;
+  margin: 0;
+  padding: 24px;
+  background: #1e1e1e;
 }
 
 .progress-text {
-  color: #ffffffbb;
-  margin-bottom: 5px;
+  color: #fff;
+  margin-bottom: 16px;
   font-size: 14px;
+  line-height: 1.4;
 }
 
 .progress-bar {
   width: 100%;
-  height: 8px;
-  background: #363636;
-  border-radius: 4px;
+  height: 4px;
+  background: #333;
+  border-radius: 0;
   overflow: hidden;
+  margin-bottom: 16px;
 }
 
 .progress-bar-inner {
   width: 0%;
   height: 100%;
   background: #64B5F6;
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  border-radius: 0;
+  transition: width 0.2s ease;
 }
 
 .toolbar {
@@ -441,7 +596,7 @@ pre {
   margin: 0 auto;
 }
 
-/* 发送按钮特殊样式 */
+/* å‘é€æŒ‰é’®ç‰¹æ®Šæ ·å¼ */
 .send-btn {
   color: #666;
 }
@@ -450,7 +605,7 @@ pre {
   background-color: #ddd;
 }
 
-/* 拖拽提示样式 */
+/* æ‹–æ‹½æç¤ºæ ·å¼ */
 .dragtip {
   background: rgba(26, 26, 26, 0.95);
 }
@@ -657,31 +812,34 @@ pre {
   font-size: 16px;
 }
 
-/* 使用须知模态框样式 */
+/* ä½¿ç”¨é¡»çŸ¥æ¨¡æ€æ¡†æ ·å¼ */
 .usage-info-modal {
   max-width: 500px;
   width: calc(100% - 40px);
 }
 
 .usage-info-content {
-  background-color: #333;
-  padding: 15px;
-  border-radius: 6px;
-  margin-bottom: 15px;
+  background-color: #1e1e1e;
+  padding: 24px;
+  border: 1px solid #333;
+  border-radius: 0;
+  margin: 0;
 }
 
 .usage-info-content p {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   color: #64B5F6;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .usage-info-item {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 12px;
-  font-size: 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .usage-info-item:last-child {
@@ -689,52 +847,67 @@ pre {
 }
 
 .usage-info-item svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
-  margin-right: 10px;
-  margin-top: 2px;
+  margin-right: 12px;
+  margin-top: 1px;
   color: #FFA726;
 }
 
 .usage-info-item span {
-  line-height: 1.4;
+  line-height: 1.5;
+  color: #fff;
 }
 
 .usage-info-item strong {
   color: #FF9800;
+  font-weight: 500;
 }
 
 .usage-info-modal .modal-footer {
   text-align: center;
+  padding: 16px 24px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
 }
 
 .usage-info-modal .modal-footer button {
-  padding: 10px 30px;
-  font-size: 15px;
+  padding: 8px 16px;
+  font-size: 14px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 0;
+  color: #fff;
+  transition: background-color 0.15s ease;
 }
 
-/* 网络状态指示器样式 */
+.usage-info-modal .modal-footer button:hover {
+  background: #444;
+}
+
+/* ç½‘ç»œçŠ¶æ€æŒ‡ç¤ºå™¨æ ·å¼ */
 .network-status-container {
-  margin-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 15px;
+  margin-top: 24px;
+  border-top: 1px solid #333;
+  padding-top: 20px;
 }
 
 .network-status-container h4 {
   margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 16px;
-  color: #e0e0e0;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #fff;
+  font-weight: 500;
 }
 
 .network-status {
   display: flex;
   align-items: center;
-  padding: 12px;
-  border-radius: 6px;
-  background-color: #333;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 0;
+  background-color: #2a2a2a;
+  border: 1px solid #333;
 }
 
 .status-icon {
@@ -754,9 +927,9 @@ pre {
 
 .status-message {
   flex: 1;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #e0e0e0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #fff;
 }
 
 .status-message strong {
@@ -792,7 +965,7 @@ pre {
   }
 }
 
-/* 工具栏网络状态指示器 */
+/* å·¥å…·æ ç½‘ç»œçŠ¶æ€æŒ‡ç¤ºå™¨ */
 .toolbar-network-status {
   display: flex;
   align-items: center;
@@ -838,16 +1011,19 @@ pre {
   color: #f44336;
 }
 
-/* 昵称输入相关样式 */
+/* æ˜µç§°è¾“å…¥ç›¸å…³æ ·å¼ */
 .nickname-input-container {
   margin: 20px auto 24px auto;
   display: flex;
   justify-content: center;
+  width: 100%;
+  max-width: 520px;
 }
 
 .nickname-input-container input {
-  width: 100%;
-  max-width: 340px;
+  width: 90% !important;
+  max-width: 500px !important;
+  min-width: 40px !important;
   padding: 12px 14px;
   border: 1px solid #363636;
   background: #242424;
@@ -863,19 +1039,18 @@ pre {
   border-color: #64B5F6;
 }
 
-/* 添加私聊模式下输入框的样式 */
 .txt-msg.private-mode {
   border-color: #64B5F6;
   background-color: rgba(100, 181, 246, 0.05);
 }
 
-/* 私聊消息样式 */
+/* ç§èŠæ¶ˆæ¯æ ·å¼ */
 .chat-item.private-chat {
   background-color: rgba(100, 181, 246, 0.05);
   border-left: 3px solid #64B5F6;
 }
 
-/* 用户操作菜单 */
+/* ç”¨æˆ·æ“ä½œèœå• */
 .user-action-menu {
   position: fixed;
   background: #2a2a2a;
@@ -913,7 +1088,7 @@ pre {
   flex-shrink: 0;
 }
 
-/* PWA 安装按钮样式 */
+/* PWA å®‰è£…æŒ‰é’®æ ·å¼ */
 .pwa-install-btn {
   display: flex;
   align-items: center;
@@ -965,7 +1140,7 @@ pre {
   margin-right: 0;
 }
 
-/* PWA 通知样式 */
+/* PWA é€šçŸ¥æ ·å¼ */
 .pwa-notification {
   position: fixed;
   top: 20px;
@@ -1028,7 +1203,7 @@ pre {
   }
 }
 
-/* 移动端适配 */
+/* ç§»åŠ¨ç«¯é€‚é… */
 @media (max-width: 768px) {
   .pwa-install-btn,
   .toolbar-btn {
@@ -1055,5 +1230,84 @@ pre {
     right: 10px;
     left: 10px;
     max-width: none;
+  }
+}
+
+/* 详细的进度显示样式 */
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #333;
+}
+
+.progress-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.progress-percentage {
+  font-size: 16px;
+  font-weight: 600;
+  color: #64B5F6;
+}
+
+.progress-details {
+  margin: 20px 0;
+  padding: 16px;
+  background-color: #2a2a2a;
+  border: 1px solid #333;
+  border-radius: 0;
+}
+
+.progress-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.progress-detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: #999;
+  font-weight: 400;
+}
+
+.detail-value {
+  color: #fff;
+  font-weight: 500;
+  text-align: right;
+  max-width: 60%;
+  word-break: break-all;
+}
+
+/* 进度条动画 */
+.progress-bar-inner {
+  transition: width 0.3s ease;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .progress-details {
+    padding: 10px;
+  }
+  
+  .progress-detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  
+  .detail-value {
+    max-width: 100%;
+    margin-top: 2px;
   }
 }
