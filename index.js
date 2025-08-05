@@ -11,6 +11,7 @@ let userNickname = ""; // 存储用户昵称
 let currentChatUser = null; // 当前私聊的用户
 let privateChatMessages = {}; // 存储私聊消息 {userId: [{sender, content, time}, ...]}
 var groupMessages = []; // 存储群聊消息
+let pendingMultipleFiles = null; // 存储多文件数据
 
 // 关闭使用须知模态框
 function closeUsageInfoModal() {
@@ -642,6 +643,99 @@ function enterTxt(event) {
 }
 
 // 文件传输相关函数
+// 多文件发送函数
+async function sendMultipleFiles(files) {
+  // 获取所有其他用户，不限制网络
+  const otherUsers = users.filter(u => !u.isMe);
+  
+  // 显示多文件发送模态框，即使没有用户也可以选择文件
+  showMultipleFilesModal(files, otherUsers);
+}
+
+// 显示多文件发送模态框
+function showMultipleFilesModal(files, users) {
+  const modal = document.getElementById('userSelectModal');
+  const userList = document.getElementById('userSelectList');
+  const modalTitle = modal.querySelector('h3');
+  
+  // 更新模态框标题
+  modalTitle.textContent = `选择接收用户 (${files.length} 个文件将直接发送)`;
+  
+  // 清空之前的列表
+  userList.innerHTML = '';
+  
+  // 显示文件列表
+  const filesList = document.createElement('div');
+  filesList.className = 'files-list';
+  
+  // 计算总大小
+  let totalSize = 0;
+  Array.from(files).forEach((file, index) => {
+    totalSize += file.size;
+  });
+  
+  // 在标题中显示总计信息
+  filesList.innerHTML = `<h4>选择的文件（将直接发送）：总计 <span style="color: #4CAF50;">${formatFileSize(totalSize)}</span></h4>`;
+  
+  const filesContainer = document.createElement('div');
+  filesContainer.className = 'files-container';
+  
+  Array.from(files).forEach((file, index) => {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.innerHTML = `
+      <span class="file-icon">📄</span>
+      <span class="file-name">${getShortFileName(file.name)}</span>
+      <span class="file-size" style="color: #4CAF50;">(${formatFileSize(file.size)})</span>
+    `;
+    filesContainer.appendChild(fileItem);
+  });
+  
+  filesList.appendChild(filesContainer);
+  userList.appendChild(filesList);
+  
+  // 添加用户选择列表
+  const usersList = document.createElement('div');
+  usersList.className = 'users-list';
+  usersList.innerHTML = '<h4>选择接收用户：</h4>';
+  
+  if (users.length === 0) {
+    const noUsersMsg = document.createElement('div');
+    noUsersMsg.className = 'no-users-msg';
+    noUsersMsg.innerHTML = '<p>当前没有其他用户在线，无法发送文件。</p>';
+    usersList.appendChild(noUsersMsg);
+  } else {
+    users.forEach(user => {
+      const userItem = document.createElement('div');
+      userItem.className = 'user-item';
+      userItem.innerHTML = `
+        <label>
+          <input type="checkbox" value="${user.id}" ${user.isSameNetwork() && user.isConnected() ? '' : 'disabled'}>
+          <span class="user-name">${getUserNickname(user.id) || user.id}</span>
+          <span class="user-status ${user.isSameNetwork() && user.isConnected() ? 'online' : 'offline'}">
+            ${user.isSameNetwork() && user.isConnected() ? '在线' : '离线'}
+          </span>
+        </label>
+      `;
+      usersList.appendChild(userItem);
+    });
+  }
+  
+  userList.appendChild(usersList);
+  
+  // 保存文件数据供后续使用
+  window.pendingMultipleFiles = Array.from(files);
+  
+  // 显示模态框
+  modal.style.display = 'block';
+  
+  // 更新按钮文本
+  const sendButton = modal.querySelector('.modal-footer button:last-child');
+  if (sendButton) {
+    sendButton.textContent = `发送 ${files.length} 个文件`;
+  }
+}
+
 async function sendFile(file) {
   pendingFile = file;
   
@@ -665,12 +759,23 @@ async function sendFile(file) {
       currentTransferUser = user; // 保存当前传输用户的引用
       const fileInfo = { name: file.name, size: file.size };
       
-      // 显示进度条
+      // 显示进度条 - 只有一个用户时隐藏选择界面
       modal.style.display = 'block';
       document.getElementById('userSelectList').style.display = 'none';
-      modal.querySelector('.modal-footer').style.display = 'block';
-      modal.querySelector('.modal-footer button:last-child').style.display = 'none';
+      modal.querySelector('h3').textContent = '正在发送文件'; // 修改标题
       progressContainer.style.display = 'block';
+      
+      // 隐藏发送按钮
+      const sendButton = modal.querySelector('.modal-footer button:last-child');
+      if (sendButton) {
+        sendButton.style.display = 'none';
+      }
+      
+      // 单文件发送时隐藏详细的进度信息，只显示简单进度
+      const progressDetails = modal.querySelector('.progress-details');
+      const progressHeader = modal.querySelector('.progress-header');
+      if (progressDetails) progressDetails.style.display = 'none';
+      if (progressHeader) progressHeader.style.display = 'none';
       
       // 创建进度回调
       const onProgress = (sent, total) => {
@@ -694,10 +799,21 @@ async function sendFile(file) {
       // 恢复界面状态
       modal.style.display = 'none';
       document.getElementById('userSelectList').style.display = 'block';
-      modal.querySelector('.modal-footer').style.display = 'block';
-      modal.querySelector('.modal-footer button:last-child').style.display = 'inline-block';
+      modal.querySelector('h3').textContent = '选择接收用户'; // 恢复标题文本
       progressContainer.style.display = 'none';
       progressBar.style.width = '0%';
+      
+      // 恢复发送按钮显示
+      const sendButton = modal.querySelector('.modal-footer button:last-child');
+      if (sendButton) {
+        sendButton.style.display = 'block';
+      }
+      
+      // 恢复详细进度信息的显示
+      const progressDetails = modal.querySelector('.progress-details');
+      const progressHeader = modal.querySelector('.progress-header');
+      if (progressDetails) progressDetails.style.display = 'block';
+      if (progressHeader) progressHeader.style.display = 'flex';
     }
     
     pendingFile = null;
@@ -710,9 +826,26 @@ async function sendFile(file) {
 function showUserSelectModal() {
   const modal = document.getElementById('userSelectModal');
   const userList = document.getElementById('userSelectList');
+  const modalTitle = modal.querySelector('h3');
+  const confirmBtn = modal.querySelector('.modal-footer button:last-child');
+  
+  // 只在初始化时设置标题，不重置
+  if (modalTitle.textContent !== '正在发送文件') {
+    modalTitle.textContent = '选择接收用户';
+  }
+  confirmBtn.textContent = '发送';
+  
+  // 清除多文件数据
+  pendingMultipleFiles = null;
   
   // 清空之前的列表
   userList.innerHTML = '';
+  
+  // 单文件发送时隐藏详细的进度信息
+  const progressDetails = modal.querySelector('.progress-details');
+  const progressHeader = modal.querySelector('.progress-header');
+  if (progressDetails) progressDetails.style.display = 'none';
+  if (progressHeader) progressHeader.style.display = 'none';
   
   // 添加用户选项 - 只显示同一局域网的用户
   const sameNetworkUsers = users.filter(user => !user.isMe && user.isSameNetwork());
@@ -730,7 +863,7 @@ function showUserSelectModal() {
     item.innerHTML = `
       <label>
         <input type="checkbox" value="${user.id}">
-        <span>${user.id}</span>
+        <span>${user.nickname || user.id}</span>
       </label>
     `;
     
@@ -755,12 +888,45 @@ function cancelSendFile() {
     currentTransferUser.cancelTransfer();
   }
   const modal = document.getElementById('userSelectModal');
+  
+  // 清除多文件数据
+  pendingMultipleFiles = null;
+  
+  // 重置模态框标题和按钮文本
+  const modalTitle = modal.querySelector('h3');
+  const confirmBtn = modal.querySelector('.modal-footer button:last-child');
+  modalTitle.textContent = '选择接收用户';
+  confirmBtn.textContent = '发送';
+  
+  // 重置按钮状态
+  confirmBtn.disabled = false;
+  confirmBtn.style.opacity = '1';
+  confirmBtn.style.pointerEvents = 'auto';
+  
+  // 重置其他元素状态
+  const userList = document.getElementById('userSelectList');
+  const progressContainer = modal.querySelector('.progress-container');
+  const progressBar = modal.querySelector('.progress-bar-inner');
+  
+  if (userList) userList.style.display = 'block';
+  if (progressContainer) progressContainer.style.display = 'none';
+  if (progressBar) progressBar.style.width = '0%';
+  
+  // 确保modal-footer布局正确
+  const modalFooter = modal.querySelector('.modal-footer');
+  if (modalFooter) {
+    modalFooter.style.display = 'flex';
+    modalFooter.style.justifyContent = 'flex-end';
+    modalFooter.style.alignItems = 'center';
+  }
+  
   modal.style.display = 'none';
   pendingFile = null;
   currentTransferUser = null;
 }
 
-async function confirmSendFile() {
+// 确认发送多文件
+async function confirmSendMultipleFiles() {
   const modal = document.getElementById('userSelectModal');
   const sendButton = modal.querySelector('.modal-footer button:last-child');
   const progressContainer = modal.querySelector('.progress-container');
@@ -768,55 +934,235 @@ async function confirmSendFile() {
   const progressText = modal.querySelector('.progress-text');
   const userList = document.getElementById('userSelectList');
   
-  // 只选择同一局域网中的用户
+  // 获取选择的用户 - 只选择同一网络且已连接的用户
   const selectedUsers = Array.from(document.querySelectorAll('#userSelectList input[type="checkbox"]:checked'))
     .map(checkbox => users.find(u => u.id === checkbox.value))
-    .filter(u => u && u.isSameNetwork());
+    .filter(u => u && u.isSameNetwork() && u.isConnected());
   
-  if (selectedUsers.length > 0 && pendingFile) {
+  // 获取文件列表 - 直接获取文件数组
+  const filesData = window.pendingMultipleFiles;
+  
+  if (selectedUsers.length === 0) {
+    alert('请选择至少一个接收用户');
+    return;
+  }
+  
+  if (filesData && filesData.length > 0) {
     sendButton.disabled = true;
-    sendButton.textContent = '发送中...';
+    sendButton.textContent = '正在发送文件...';
+    sendButton.style.opacity = '0.5'; // 使用透明度而不是隐藏，避免布局问题
+    sendButton.style.pointerEvents = 'none'; // 禁用点击
     userList.style.display = 'none';
     progressContainer.style.display = 'block';
     
+    // 修改标题为正在发送文件
+    modal.querySelector('h3').textContent = '正在发送文件';
+    
+    // 多文件发送时显示完整的进度信息
+    const progressDetails = modal.querySelector('.progress-details');
+    const progressHeader = modal.querySelector('.progress-header');
+    if (progressDetails) progressDetails.style.display = 'block';
+    if (progressHeader) progressHeader.style.display = 'flex';
+    
     try {
-      const fileInfo = { name: pendingFile.name, size: pendingFile.size };
-      const totalUsers = selectedUsers.length;
+      // 验证文件数据
+      if (!Array.isArray(filesData) || filesData.length === 0) {
+        throw new Error('文件数据无效');
+      }
+      
+      // 显示发送文件的进度
+      progressText.textContent = `正在发送 ${filesData.length} 个文件给 ${selectedUsers.length} 个用户...`;
+      progressBar.style.width = '0%';
+      
+      // 记录开始时间
       const startTime = Date.now();
+      
+      // 初始化进度详细信息
+      const currentFileEl = document.getElementById('currentFile');
+      const fileProgressEl = document.getElementById('fileProgress');
+      const processingSpeedEl = document.getElementById('processingSpeed');
+      const estimatedTimeEl = document.getElementById('estimatedTime');
+      const progressPercentage = modal.querySelector('.progress-percentage');
+      
+      if (currentFileEl) currentFileEl.textContent = '准备中...';
+      if (fileProgressEl) fileProgressEl.textContent = '0/' + (selectedUsers.length * filesData.length);
+      if (processingSpeedEl) processingSpeedEl.textContent = '等待中...';
+      if (estimatedTimeEl) estimatedTimeEl.textContent = '计算中...';
+      if (progressPercentage) progressPercentage.textContent = '0%';
+      
+      // 发送文件给所有选中的用户
+      const totalUsers = selectedUsers.length;
+      const totalFiles = filesData.length;
+      const totalOperations = totalUsers * totalFiles; // 总操作数 = 用户数 × 文件数
+      let successCount = 0;
+      let completedOperations = 0;
+      let totalBytesSent = 0;
+      
+      // 初始化进度显示
+      progressBar.style.width = '0%';
+      if (fileProgressEl) fileProgressEl.textContent = `0/${totalOperations}`;
       
       for (let i = 0; i < selectedUsers.length; i++) {
         const user = selectedUsers[i];
-        progressText.textContent = `正在发送给 ${user.id}... (${i + 1}/${totalUsers})`;
+        progressText.textContent = `正在发送文件给 ${getUserNickname(user.id) || user.id}... (${i + 1}/${totalUsers})`;
         
-        const onProgress = (sent, total) => {
-          const userProgress = (sent / total) * 100;
-          const totalProgress = ((i * 100) + userProgress) / totalUsers;
-          progressBar.style.width = totalProgress + '%';
-          // 计算传输速度
-          const speed = sent / (Date.now() - startTime) * 1000; // 字节/秒
-          const speedText = speed > 1024 * 1024 
-            ? `${(speed / (1024 * 1024)).toFixed(2)} MB/s`
-            : `${(speed / 1024).toFixed(2)} KB/s`;
-          progressText.textContent = `正在发送给 ${user.id}... (${i + 1}/${totalUsers}) ${speedText}`;
-        };
-        
-        await user.sendFile(fileInfo, pendingFile, onProgress);
+        try {
+          // 为每个用户发送所有文件
+          for (let j = 0; j < filesData.length; j++) {
+            const file = filesData[j];
+            const currentFileIndex = j + 1;
+            const currentOperation = completedOperations + 1;
+            
+            // 更新进度 - 基于总操作数计算真实进度
+            const totalProgress = (completedOperations / totalOperations) * 100;
+            progressBar.style.width = totalProgress + '%';
+            
+            // 更新进度百分比显示
+            if (progressPercentage) {
+              progressPercentage.textContent = Math.round(totalProgress) + '%';
+            }
+            
+            // 更新详细信息 - 显示总体进度
+            if (currentFileEl) currentFileEl.textContent = getShortFileName(file.name);
+            if (fileProgressEl) fileProgressEl.textContent = `${currentOperation}/${totalOperations}`;
+            
+            // 计算传输速度
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            const speed = elapsedTime > 0 ? totalBytesSent / elapsedTime : 0;
+            const speedText = speed > 1024 * 1024 
+              ? `${(speed / (1024 * 1024)).toFixed(2)} MB/s`
+              : `${(speed / 1024).toFixed(2)} KB/s`;
+            
+            if (processingSpeedEl) processingSpeedEl.textContent = speedText;
+            
+            // 估算剩余时间
+            if (elapsedTime > 0 && completedOperations > 0) {
+              const avgTimePerOperation = elapsedTime / completedOperations;
+              const remainingOperations = totalOperations - completedOperations;
+              const estimatedTime = remainingOperations * avgTimePerOperation;
+              const timeText = estimatedTime > 60 
+                ? `${Math.round(estimatedTime / 60)}分${Math.round(estimatedTime % 60)}秒`
+                : `${Math.round(estimatedTime)}秒`;
+              
+              if (estimatedTimeEl) estimatedTimeEl.textContent = timeText;
+            }
+            
+            progressText.textContent = `正在发送文件给 ${getUserNickname(user.id) || user.id}`;
+            
+            const onProgress = (sent, total) => {
+              // 计算当前文件进度
+              const fileProgress = sent / total;
+              const currentOperationProgress = (completedOperations + fileProgress) / totalOperations;
+              const currentTotalProgress = currentOperationProgress * 100;
+              
+              progressBar.style.width = currentTotalProgress + '%';
+              
+              // 更新进度百分比显示
+              if (progressPercentage) {
+                progressPercentage.textContent = Math.round(currentTotalProgress) + '%';
+              }
+              
+              // 更新进度文本 - 只显示用户信息
+              progressText.textContent = `正在发送文件给 ${getUserNickname(user.id) || user.id}`;
+              
+              // 更新传输速度
+              const currentElapsedTime = (Date.now() - startTime) / 1000;
+              const currentTotalBytes = totalBytesSent + sent;
+              const currentSpeed = currentElapsedTime > 0 ? currentTotalBytes / currentElapsedTime : 0;
+              const currentSpeedText = currentSpeed > 1024 * 1024 
+                ? `${(currentSpeed / (1024 * 1024)).toFixed(2)} MB/s`
+                : `${(currentSpeed / 1024).toFixed(2)} KB/s`;
+              
+              if (processingSpeedEl) processingSpeedEl.textContent = currentSpeedText;
+            };
+            
+            const fileInfo = { name: file.name, size: file.size };
+            await user.sendFile(fileInfo, file, onProgress);
+            completedOperations++;
+            totalBytesSent += file.size;
+            
+            // 文件发送完成后更新进度
+            const finalProgress = (completedOperations / totalOperations) * 100;
+            progressBar.style.width = finalProgress + '%';
+            
+            // 更新进度百分比显示
+            if (progressPercentage) {
+              progressPercentage.textContent = Math.round(finalProgress) + '%';
+            }
+            
+            console.log(`成功发送文件: ${file.name} 给用户: ${getUserNickname(user.id) || user.id}`);
+          }
+          
+          successCount++;
+          console.log(`成功发送所有文件给用户: ${getUserNickname(user.id) || user.id}`);
+        } catch (userError) {
+          console.error(`发送给用户 ${getUserNickname(user.id) || user.id} 失败:`, userError);
+          // 继续发送给其他用户，不中断整个过程
+          // 即使失败也要更新进度
+          completedOperations += filesData.length;
+          
+          // 更新失败后的进度
+          const finalProgress = (completedOperations / totalOperations) * 100;
+          progressBar.style.width = finalProgress + '%';
+          
+          // 更新进度百分比显示
+          if (progressPercentage) {
+            progressPercentage.textContent = Math.round(finalProgress) + '%';
+          }
+        }
       }
       
-      addChatItem(me.id, `[文件] ${fileInfo.name} (发送给: ${selectedUsers.map(u => u.id).join(', ')})`);
+      // 显示发送完成消息
+      if (successCount > 0) {
+        const userNames = selectedUsers.map(u => getUserNickname(u.id) || u.id).join(', ');
+        addChatItem(me.id, `[批量文件] 发送了 ${filesData.length} 个文件给: ${userNames} (成功: ${successCount}/${totalUsers})`);
+        
+        if (successCount < totalUsers) {
+          addChatItem('system', `部分用户发送失败，成功发送给 ${successCount} 个用户，失败 ${totalUsers - successCount} 个用户`);
+        }
+      } else {
+        throw new Error('所有用户发送都失败了');
+      }
+      
     } catch (error) {
-      alert('发送文件失败，请重试');
+      console.error('发送文件失败:', error);
+      
+      // 提供更详细的错误信息
+      let errorMessage = '发送文件失败';
+      if (error.message.includes('所有用户发送都失败了')) {
+        errorMessage = '所有用户发送都失败了，请检查网络连接';
+      }
+      
+      alert(errorMessage);
     } finally {
       sendButton.disabled = false;
       sendButton.textContent = '发送';
+      sendButton.style.opacity = '1'; // 恢复透明度
+      sendButton.style.pointerEvents = 'auto'; // 恢复点击
       userList.style.display = 'block';
       progressContainer.style.display = 'none';
       progressBar.style.width = '0%';
+      
+      // 恢复标题文本
+      modal.querySelector('h3').textContent = '选择接收用户';
+      
+      // 恢复详细进度信息的显示
+      const progressDetails = modal.querySelector('.progress-details');
+      const progressHeader = modal.querySelector('.progress-header');
+      if (progressDetails) progressDetails.style.display = 'block';
+      if (progressHeader) progressHeader.style.display = 'flex';
+      
+      // 确保modal-footer布局正确
+      const modalFooter = modal.querySelector('.modal-footer');
+      if (modalFooter) {
+        modalFooter.style.display = 'flex';
+        modalFooter.style.justifyContent = 'flex-end';
+        modalFooter.style.alignItems = 'center';
+      }
     }
   }
   
   modal.style.display = 'none';
-  pendingFile = null;
 }
 
 // 拖放文件处理
@@ -827,7 +1173,13 @@ async function handleEvent(event) {
   if (event.type === 'drop') {
     droptarget.classList.remove('dragover');
     if (event.dataTransfer.files.length > 0) {
+      // 如果只拖放了一个文件，直接发送
+      if (event.dataTransfer.files.length === 1) {
       await sendFile(event.dataTransfer.files[0]);
+      } else {
+        // 如果拖放了多个文件，批量发送
+        await sendMultipleFiles(event.dataTransfer.files);
+      }
     }
   } else if (event.type === 'dragleave') {
     droptarget.classList.remove('dragover');
@@ -989,6 +1341,130 @@ function getUserNickname(userId) {
   }
 }
 
+// 更新进度详细信息
+function updateProgressDetails(message, progress) {
+  const currentFileEl = document.getElementById('currentFile');
+  const fileProgressEl = document.getElementById('fileProgress');
+  const processingSpeedEl = document.getElementById('processingSpeed');
+  const estimatedTimeEl = document.getElementById('estimatedTime');
+  
+  if (!currentFileEl || !fileProgressEl || !processingSpeedEl || !estimatedTimeEl) {
+    return;
+  }
+  
+  // 解析消息中的信息
+  if (message.includes('正在读取文件:')) {
+    // 提取文件名
+    const fileNameMatch = message.match(/正在读取文件: ([^(]+)/);
+    if (fileNameMatch) {
+      currentFileEl.textContent = fileNameMatch[1].trim();
+    }
+    
+    // 提取处理进度
+    const progressMatch = message.match(/(\d+)\/(\d+) - 已处理:/);
+    if (progressMatch) {
+      const current = progressMatch[1];
+      const total = progressMatch[2];
+      fileProgressEl.textContent = `${current}/${total}`;
+    }
+    
+    // 提取处理速度
+    const speedMatch = message.match(/速度: ([^-]+)/);
+    if (speedMatch) {
+      processingSpeedEl.textContent = speedMatch[1].trim();
+    }
+    
+    // 提取文件进度
+    const fileProgressMatch = message.match(/文件进度: (\d+)%/);
+    if (fileProgressMatch) {
+      const fileProgress = fileProgressMatch[1];
+      // 更新处理进度显示，包含文件内部进度
+      const progressMatch = message.match(/(\d+)\/(\d+) - 已处理:/);
+      if (progressMatch) {
+        const current = progressMatch[1];
+        const total = progressMatch[2];
+        fileProgressEl.textContent = `${current}/${total} (文件: ${fileProgress}%)`;
+      }
+    }
+    
+    // 计算预计时间
+    if (progress > 0 && progress < 80) {
+      const remainingProgress = 80 - progress;
+      const elapsedTime = Date.now() - window.zipStartTime;
+      const estimatedTotalTime = (elapsedTime / progress) * 100;
+      const remainingTime = estimatedTotalTime - elapsedTime;
+      
+      if (remainingTime > 0) {
+        const timeText = remainingTime > 60000 
+          ? `${Math.round(remainingTime / 60000)}分${Math.round((remainingTime % 60000) / 1000)}秒`
+          : `${Math.round(remainingTime / 1000)}秒`;
+        estimatedTimeEl.textContent = timeText;
+      } else {
+        estimatedTimeEl.textContent = '计算中...';
+      }
+    }
+  } else if (message.includes('正在压缩文件')) {
+    currentFileEl.textContent = '压缩处理中';
+    
+    // 提取压缩进度
+    const compressionMatch = message.match(/压缩进度: (\d+)%/);
+    if (compressionMatch) {
+      fileProgressEl.textContent = `压缩: ${compressionMatch[1]}%`;
+    }
+    
+    // 提取处理速度
+    const speedMatch = message.match(/速度: ([^-]+)/);
+    if (speedMatch) {
+      processingSpeedEl.textContent = speedMatch[1].trim();
+    }
+    
+    // 计算预计时间
+    if (progress > 80 && progress < 95) {
+      const remainingProgress = 95 - progress;
+      const elapsedTime = Date.now() - window.zipStartTime;
+      const estimatedTotalTime = (elapsedTime / progress) * 100;
+      const remainingTime = estimatedTotalTime - elapsedTime;
+      
+      if (remainingTime > 0) {
+        const timeText = remainingTime > 60000 
+          ? `${Math.round(remainingTime / 60000)}分${Math.round((remainingTime % 60000) / 1000)}秒`
+          : `${Math.round(remainingTime / 1000)}秒`;
+        estimatedTimeEl.textContent = timeText;
+      } else {
+        estimatedTimeEl.textContent = '计算中...';
+      }
+    }
+  } else if (message.includes('正在生成压缩包')) {
+    currentFileEl.textContent = '压缩处理中';
+    fileProgressEl.textContent = '压缩阶段';
+    
+    // 提取预计时间
+    const timeMatch = message.match(/预计剩余时间: ([^)]+)/);
+    if (timeMatch) {
+      estimatedTimeEl.textContent = timeMatch[1];
+    }
+    
+    processingSpeedEl.textContent = '压缩中...';
+  } else if (message.includes('压缩包创建完成')) {
+    currentFileEl.textContent = '已完成';
+    fileProgressEl.textContent = '100%';
+    
+    // 提取压缩率
+    const ratioMatch = message.match(/压缩率: (\d+)%/);
+    if (ratioMatch) {
+      processingSpeedEl.textContent = `压缩率: ${ratioMatch[1]}%`;
+    }
+    
+    // 提取总耗时
+    const timeMatch = message.match(/总耗时: ([^)]+)/);
+    if (timeMatch) {
+      estimatedTimeEl.textContent = timeMatch[1];
+    }
+  }
+}
+
+
+
 // 事件监听
 document.addEventListener('DOMContentLoaded', function() {
   // 检查是否需要显示使用须知模态框
@@ -1020,7 +1496,65 @@ document.addEventListener('DOMContentLoaded', function() {
       checkNetworkStatus();
     });
   }
+  
+  // 初始化其他功能
+  initializeFileHandling();
+  initializeMobileMenu();
+  initializeWebSocket();
+});
 
+// 初始化文件处理功能
+function initializeFileHandling() {
+  const droptarget = document.querySelector('.chat-container');
+  
+  // 为昵称输入框添加回车键事件
+  const nicknameInput = document.getElementById('nicknameInput');
+  if (nicknameInput) {
+    nicknameInput.addEventListener('keydown', checkEnterForNickname);
+  }
+
+  // 添加拖拽事件监听
+  if (droptarget) {
+    droptarget.addEventListener("dragenter", handleEvent);
+    droptarget.addEventListener("dragover", handleEvent);
+    droptarget.addEventListener("drop", handleEvent);
+    droptarget.addEventListener("dragleave", handleEvent);
+  }
+
+  // 文件按钮事件监听
+  const fileBtn = document.querySelector('.file-btn');
+  if (fileBtn) {
+    fileBtn.addEventListener('click', async () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true; // 支持多选
+      input.accept = 'image/*,video/*,audio/*,application/*'; // 支持图片、视频、音频和其他文件类型
+      input.onchange = async (e) => {
+        if (e.target.files.length > 0) {
+          // 如果只选择了一个文件，直接发送
+          if (e.target.files.length === 1) {
+            await sendFile(e.target.files[0]);
+          } else {
+            // 如果选择了多个文件，批量发送
+            await sendMultipleFiles(e.target.files);
+          }
+        }
+      };
+      input.click();
+    });
+  }
+
+  // 发送按钮事件监听
+  const sendBtn = document.querySelector('.send-btn');
+  if (sendBtn) {
+    sendBtn.addEventListener('click', () => {
+      const messageInput = document.getElementById('messageInput');
+      if (messageInput && messageInput.value.trim()) {  // 只有当消息不为空时才发送
+        sendMessage();
+      }
+    });
+  }
+  
   // 添加设置昵称按钮事件监听
   const nicknameBtn = document.querySelector('.nickname-btn');
   if (nicknameBtn) {
@@ -1037,52 +1571,38 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cancelNicknameBtn) {
     cancelNicknameBtn.addEventListener('click', closeNicknameModal);
   }
-  
-  // 为昵称输入框添加回车键事件
-  const nicknameInput = document.getElementById('nicknameInput');
-  if (nicknameInput) {
-    nicknameInput.addEventListener('keydown', checkEnterForNickname);
-  }
+}
 
-  droptarget.addEventListener("dragenter", handleEvent);
-  droptarget.addEventListener("dragover", handleEvent);
-  droptarget.addEventListener("drop", handleEvent);
-  droptarget.addEventListener("dragleave", handleEvent);
-
-  document.querySelector('.file-btn').addEventListener('click', async () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.onchange = async (e) => {
-      if (e.target.files.length > 0) {
-        await sendFile(e.target.files[0]);
-      }
-    };
-    input.click();
-  });
-
-  document.querySelector('.send-btn').addEventListener('click', () => {
-    if (document.getElementById('messageInput').value.trim()) {  // 只有当消息不为空时才发送
-      sendMessage();
-    }
-  });
-
+// 初始化移动端菜单
+function initializeMobileMenu() {
   // 移动端菜单处理
   const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
   const closeSidebarBtn = document.querySelector('.close-sidebar');
 
-  mobileMenuBtn.addEventListener('click', toggleMobileSidebar);
-  closeSidebarBtn.addEventListener('click', toggleMobileSidebar);
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', toggleMobileSidebar);
+  }
+  
+  if (closeSidebarBtn) {
+    closeSidebarBtn.addEventListener('click', toggleMobileSidebar);
+  }
 
   // 点击移动端侧边栏外部关闭侧边栏
   document.addEventListener('click', (e) => {
     const mobileSidebar = document.querySelector('.mobile-sidebar');
-    if (mobileSidebar.classList.contains('active') &&
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    
+    if (mobileSidebar && mobileMenuBtn && 
+        mobileSidebar.classList.contains('active') &&
         !mobileSidebar.contains(e.target) &&
         !mobileMenuBtn.contains(e.target)) {
       toggleMobileSidebar();
     }
   });
+}
 
+// 初始化WebSocket连接
+function initializeWebSocket() {
   // 初始化 WebSocket 连接
   const signalingServer = new WebSocket(wsUrl);
   window.signalingServer = signalingServer; // 保存为全局变量以便其他函数使用
@@ -1215,7 +1735,7 @@ document.addEventListener('DOMContentLoaded', function() {
   signalingServer.onerror = (error) => {};
 
   signalingServer.onclose = () => {};
-});
+}
 
 // 文件名截断显示函数
 function getShortFileName(name, maxLen = 20) {
@@ -1226,4 +1746,88 @@ function getShortFileName(name, maxLen = 20) {
   const base = dotIdx !== -1 ? name.slice(0, dotIdx) : name;
   if (base.length <= 12) return name; // 基本名不长就不截断
   return base.slice(0, 8) + '...' + base.slice(-4) + ext;
+}
+
+// 确认发送单文件
+async function confirmSendFile() {
+  const modal = document.getElementById('userSelectModal');
+  const sendButton = modal.querySelector('.modal-footer button:last-child');
+  const progressContainer = modal.querySelector('.progress-container');
+  const progressBar = modal.querySelector('.progress-bar-inner');
+  const progressText = modal.querySelector('.progress-text');
+  const userList = document.getElementById('userSelectList');
+  
+  // 检查是否有多文件数据
+  const filesData = window.pendingMultipleFiles;
+  
+  if (filesData && filesData.length > 0) {
+    // 多文件发送
+    await confirmSendMultipleFiles();
+    return;
+  }
+  
+  // 单文件发送（原有逻辑）
+  const selectedUsers = Array.from(document.querySelectorAll('#userSelectList input[type="checkbox"]:checked'))
+    .map(checkbox => users.find(u => u.id === checkbox.value))
+    .filter(u => u && u.isSameNetwork());
+  
+  if (selectedUsers.length > 0 && pendingFile) {
+    sendButton.disabled = true;
+    sendButton.textContent = '发送中...';
+    userList.style.display = 'none';
+    progressContainer.style.display = 'block';
+    
+    // 修改标题为正在发送文件
+    modal.querySelector('h3').textContent = '正在发送文件';
+    
+    // 单文件发送时隐藏详细的进度信息，只显示简单进度
+    const progressDetails = modal.querySelector('.progress-details');
+    const progressHeader = modal.querySelector('.progress-header');
+    if (progressDetails) progressDetails.style.display = 'none';
+    if (progressHeader) progressHeader.style.display = 'none';
+    
+    try {
+      const fileInfo = { name: pendingFile.name, size: pendingFile.size };
+      const totalUsers = selectedUsers.length;
+      const startTime = Date.now();
+      
+      for (let i = 0; i < selectedUsers.length; i++) {
+        const user = selectedUsers[i];
+        progressText.textContent = `正在发送给 ${getUserNickname(user.id) || user.id}... (${i + 1}/${totalUsers})`;
+        
+        const onProgress = (sent, total) => {
+          const userProgress = (sent / total) * 100;
+          const totalProgress = ((i * 100) + userProgress) / totalUsers;
+          progressBar.style.width = totalProgress + '%';
+          // 计算传输速度
+          const speed = sent / (Date.now() - startTime) * 1000; // 字节/秒
+          const speedText = speed > 1024 * 1024 
+            ? `${(speed / (1024 * 1024)).toFixed(2)} MB/s`
+            : `${(speed / 1024).toFixed(2)} KB/s`;
+          progressText.textContent = `正在发送给 ${getUserNickname(user.id) || user.id}... (${i + 1}/${totalUsers}) ${speedText}`;
+        };
+        
+        await user.sendFile(fileInfo, pendingFile, onProgress);
+      }
+      
+      const userNames = selectedUsers.map(u => getUserNickname(u.id) || u.id).join(', ');
+      addChatItem(me.id, `[文件] ${fileInfo.name} (发送给: ${userNames})`);
+    } catch (error) {
+      alert('发送文件失败，请重试');
+    } finally {
+      sendButton.disabled = false;
+      sendButton.textContent = '发送';
+      sendButton.style.opacity = '1'; // 恢复透明度
+      sendButton.style.pointerEvents = 'auto'; // 恢复点击
+      userList.style.display = 'block';
+      progressContainer.style.display = 'none';
+      progressBar.style.width = '0%';
+      
+      // 恢复标题文本
+      modal.querySelector('h3').textContent = '选择接收用户';
+    }
+  }
+  
+  modal.style.display = 'none';
+  pendingFile = null;
 }
