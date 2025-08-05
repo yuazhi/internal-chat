@@ -449,8 +449,22 @@ class XChatUser {
   isSameNetwork() {
     if (this.isMe) return true;
     
-    // 没有STUN/TURN服务器的情况下，如果能连接成功，就是同一局域网
-    return this.isConnected();
+    // 如果没有RTCPeerConnection，说明还没有尝试连接，应该允许尝试
+    if (!this.rtcConn) return true;
+    
+    // 如果连接状态是connecting或connected，认为在同一网络
+    if (this.rtcConn.connectionState === 'connecting' || 
+        this.rtcConn.connectionState === 'connected') {
+      return true;
+    }
+    
+    // 如果连接失败，但之前有过连接尝试，也认为可能在同一网络
+    if (this.rtcConn.connectionState === 'failed') {
+      return true;
+    }
+    
+    // 其他情况（如disconnected）也允许尝试
+    return true;
   }
 }
 
